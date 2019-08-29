@@ -13,6 +13,7 @@
 3. Third argument is the directory created in the previous C program.
 */
 
+// Function to write to the standard output
 int writeThis(char *str) 
 {
     int len = strlen(str);
@@ -20,6 +21,7 @@ int writeThis(char *str)
     return written;
 }
 
+// Function to print The File Permission
 void printFilePermission(int fileMode) 
 {
     writeThis("-----------\n");
@@ -64,6 +66,7 @@ void printFilePermission(int fileMode)
         writeThis("other does not have execute permissions\n");
 }
 
+// Checks if the buf_fd1 and buf_fd2 are reverse of each other
 bool checkIfEqual(char *buf_fd1, char *buf_fd2, size_t len) 
 {
     for (size_t i = 0; i < len; i++) 
@@ -80,23 +83,31 @@ int main(int argc, char *argv[])
     char *info = "We are currently in the old directory\n";
     writeThis(info);
 
+    // open the file for reading
     int fd1 = open(argv[2], O_RDONLY, 0);
     if (fd1 == -1) 
     {
         perror("failed to open first file\n");
         exit(1);
     }
+    // open the directory in which the reverse file exist
     int fdDir = open(argv[3], O_RDONLY, 0);
     struct stat stat_old_file;
+
+    // get information about the old-file
     fstat(fd1, &stat_old_file);
     int oldFile_mode = stat_old_file.st_mode;
     writeThis("The file permissions for the old file is:-\n");
+    // print the permission information of old file
     printFilePermission(oldFile_mode);
+    
     struct stat stat_dir;
+    // get information about the directory
     fstat(fdDir, &stat_dir);
     int dirMode = stat_dir.st_mode;
     char info2[] = "The file permissions for the directory given in the arguments are :-\n";
     write(1, info2, strlen(info2));
+    // print information for the directory 
     printFilePermission(dirMode);
     write(1, "\n", 1);
     char info3[] = "Now we have changed the directory to get access to the "
@@ -110,6 +121,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
     struct stat stat_buf;
+    // get information about the reversed file
     fstat(fd2, &stat_buf);
     int filemode = stat_buf.st_mode;
     printFilePermission(filemode);
@@ -130,9 +142,11 @@ int main(int argc, char *argv[])
     lseek(fd2, 0, SEEK_END);
     while (loop) 
     {
+        // read data from the old file
         bytesRead = read(fd1, buf_fd1, BUF_SIZE);
         if (lseek(fd2, -BUF_SIZE, SEEK_CUR) >= 0) 
         {
+            // read data from the reverse file
             read(fd2, buf_fd2,bytesRead);
             lseek(fd2, -bytesRead, SEEK_CUR);
             if (!checkIfEqual(buf_fd1, buf_fd2, bytesRead)) 
@@ -143,6 +157,7 @@ int main(int argc, char *argv[])
         } 
         else 
         {
+            // This is the last chunk of data that needs to be compared
             lseek(fd2, 0, SEEK_SET);
             read(fd2, buf_fd2, bytesRead);
             lseek(fd2, 0, SEEK_SET);
@@ -151,6 +166,7 @@ int main(int argc, char *argv[])
                 Equal = false;
                 break;
             }
+            // don't loop after this iteration
             loop = false;
         }
     }
